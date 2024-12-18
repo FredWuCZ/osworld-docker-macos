@@ -17,6 +17,34 @@ BASE_IMG_ID="InstallMedia"
 BASE_IMG="$STORAGE/base.dmg"
 BASE_VERSION="$STORAGE/$PROCESS.version"
 
+detectType() {
+
+  local dir=""
+  local file="$1"
+
+  [ ! -f "$file" ] && return 1
+  [ ! -s "$file" ] && return 1
+
+  case "${file,,}" in
+    *".iso" | *".img" | *".raw" | *".qcow2" )
+      return 0 ;;
+    * ) return 1 ;;
+  esac
+
+  return 0
+}
+
+findBackingFile() {
+
+  local ext="$1"
+  local file
+
+  file=$(find "$STORAGE" -maxdepth 1 -type f -iname "macOS.$ext" | head -n 1)
+  detectType "$file" && return 0
+
+  return 1
+}
+
 generateID() {
 
   local file="$STORAGE/$PROCESS.id"
@@ -75,7 +103,8 @@ generateSerial() {
   return 0
 }
 
-qemu-img create -f qcow2 -b /storage/macOS.qcow2 -F qcow2 /storage/data.qcow2
+findBackingFile "img" && qemu-img create -f qcow2 -b /storage/macOS.img -F qcow2 /storage/data.qcow2
+findBackingFile "qcow2" && qemu-img create -f qcow2 -b /storage/macOS.qcow2 -F qcow2 /storage/data.qcow2
 
 if ! generateID; then
   error "Failed to generate UUID!" && exit 35

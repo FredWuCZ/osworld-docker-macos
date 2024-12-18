@@ -23,7 +23,4 @@ trap - ERR
 version=$(qemu-system-x86_64 --version | head -n 1 | cut -d '(' -f 1 | awk '{ print $NF }')
 info "Booting ${APP}${BOOT_DESC} using QEMU v$version..."
 
-echo ${ARGS:+ $ARGS}
-sleep 10
-
 exec qemu-system-x86_64 ${ARGS:+ $ARGS}
